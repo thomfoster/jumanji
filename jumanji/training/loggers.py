@@ -21,6 +21,7 @@ import pickle
 from contextlib import AbstractContextManager
 from types import TracebackType
 from typing import Any, DefaultDict, Dict, Optional, Type
+from omegaconf import OmegaConf
 
 import jax.numpy as jnp
 import numpy as np
@@ -245,3 +246,33 @@ class NeptuneLogger(Logger):
 
     def upload_checkpoint(self) -> None:
         self.run[f"checkpoint/{self.checkpoint_file_name}"].upload(self.checkpoint_file_name)
+
+
+class WandbLogger(Logger):
+    """Logs to Weights & Biases (wandb)."""
+
+    def __init__(self, name: str, project: str, config: dict, save_checkpoint: bool = False):
+        super().__init__(save_checkpoint=save_checkpoint)
+        import wandb  # Import wandb locally to avoid global dependency if not used.
+        resolved_config = OmegaConf.to_container(config, resolve=True)
+        self.run = wandb.init(project=project, name=name, config=resolved_config)
+        self._env_steps = 0.0
+
+    def write(
+        self,
+        data: Dict[str, Any],
+        label: Optional[str] = None,
+        env_steps: Optional[int] = None,
+    ) -> None:
+        if env_steps is not None:
+            self._env_steps = env_steps
+        prefix = f"{label}/" if label else ""
+        for key, metric in data.items():
+            if self.is_loggable(metric) and not np.isnan(metric):
+                self.run.log({f"{prefix}/{key}": metric}, step=int(self._env_steps))
+
+    def close(self) -> None:
+        self.run.finish()
+
+    def upload_checkpoint(self) -> None:
+        self.run.save(self.checkpoint_file_name)

@@ -58,6 +58,7 @@ from jumanji.training.loggers import (
     NoOpLogger,
     TensorboardLogger,
     TerminalLogger,
+    WandbLogger,
 )
 from jumanji.training.networks.actor_critic import ActorCriticNetworks
 from jumanji.training.networks.protocols import RandomPolicy
@@ -81,9 +82,11 @@ def setup_logger(cfg: DictConfig) -> Logger:
         )
     elif cfg.logger.type == "terminal":
         logger = TerminalLogger(name=cfg.logger.name, save_checkpoint=cfg.logger.save_checkpoint)
+    elif cfg.logger.type == "wandb":
+        logger = WandbLogger(name=cfg.logger.name, project=cfg.logger.project, config=cfg, save_checkpoint=cfg.logger.save_checkpoint)
     else:
         raise ValueError(
-            f"logger expected in ['neptune', 'tensorboard', 'terminal'], got {cfg.logger}."
+            f"logger expected in ['neptune', 'tensorboard', 'terminal', 'wandb'], got {cfg.logger}."
         )
     return logger
 

@@ -7,6 +7,7 @@ agent: random  # [random, a2c]
 seed: 0
 
 logger:
-    type: terminal  # [neptune, tensorboard, terminal]
+    type: wandb  # [neptune, tensorboard, terminal]
     save_checkpoint: false  # [false, true]
     name: ${agent}_${env.name}
+    project: jumanji
