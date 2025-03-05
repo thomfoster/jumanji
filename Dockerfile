@@ -43,5 +43,4 @@ RUN python3 -m pip install --upgrade uv
 RUN uv venv -p=3.12
 WORKDIR /home/duser/project
 COPY --chown=duser:duser . /home/duser/project
-RUN uv pip install -e ".[dev,train]"
-RUN uv pip install "jax[cuda12]"
+RUN uv pip install "jax[cuda12]" -e ".[dev,train]"
